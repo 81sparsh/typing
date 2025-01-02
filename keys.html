@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alphabetical Practice Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow: hidden;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --accent-color: #ff002f;
+        }
+
+        .dark-mode {
+            --bg-color: #1e1e1e;
+            --text-color: #f4f4f9;
+        }
+
+        .container {
+            text-align: center;
+            margin: 20px auto;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            margin: 15px 0;
+        }
+
+        button, input[type="color"] {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+            border: none;
+            padding: 10px 15px;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 5px;
+        }
+
+        button:hover, input[type="color"]:hover {
+            opacity: 0.9;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        input[type="color"] {
+            border: 2px solid var(--text-color);
+            padding: 5px;
+            width: 40px;
+            height: 40px;
+        }
+
+        .game-area {
+            position: relative;
+            width: 100%;
+            height: 80vh;
+            background-color: var(--bg-color);
+            border: 2px solid var(--text-color);
+            margin: 10px auto;
+            overflow: hidden;
+        }
+
+        .letter {
+            position: absolute;
+            font-size: 4rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            transition: transform 0.2s linear;
+        }
+
+        .message, .score, .font-size-display {
+            font-size: 1.2rem;
+            margin: 10px 0;
+        }
+
+        .font-size-display {
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Alphabetical Practice Game</h1>
+        <div class="controls">
+            <button id="startButton">Start Game</button>
+            <button id="toggleMode">Toggle Dark/Light Mode</button>
+            <label for="colorPicker">Choose Accent Color:</label>
+            <input type="color" id="colorPicker" value="#007acc">
+        </div>
+        <p class="score">Score: <span id="score">0</span></p>
+        <p class="font-size-display" id="fontSizeDisplay">Font Size: 4rem</p>
+        <div class="game-area" id="gameArea"></div>
+        <p class="message" id="message">Press the displayed alphabet key to practice!</p>
+    </div>
+
+    <script>
+        const gameArea = document.getElementById("gameArea");
+        const message = document.getElementById("message");
+        const scoreDisplay = document.getElementById("score");
+        const fontSizeDisplay = document.getElementById("fontSizeDisplay");
+        const startButton = document.getElementById("startButton");
+        const toggleMode = document.getElementById("toggleMode");
+        const colorPicker = document.getElementById("colorPicker");
+
+        let currentLetter = "";
+        let score = 0;
+        let letterElement;
+        let letterSize = 4; // Initial font size in rem
+
+        // Full-screen function
+        function goFullScreen() {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else if (document.documentElement.webkitRequestFullscreen) {
+                document.documentElement.webkitRequestFullscreen();
+            } else if (document.documentElement.msRequestFullscreen) {
+                document.documentElement.msRequestFullscreen();
+            }
+        }
+
+        // Generate a random position within the game area
+     // Generate a random position within the game area
+function getRandomPosition() {
+    const areaWidth = gameArea.offsetWidth;
+    const areaHeight = gameArea.offsetHeight;
+    const letterWidth = letterSize * 20;  // Estimate width of the letter based on its size
+    const letterHeight = letterSize * 30;  // Estimate height of the letter based on its size
+    
+    // Make sure the letter stays within bounds
+    const randomX = Math.random() * (areaWidth - letterWidth); 
+    const randomY = Math.random() * (areaHeight - letterHeight); 
+
+    return { x: randomX, y: randomY };
+}
+
+
+        // Generate a random alphabet
+        function getRandomLetter() {
+            const alphabets = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            return alphabets.charAt(Math.floor(Math.random() * alphabets.length));
+        }
+
+        // Start the game
+        function startGame() {
+            score = 0;
+            scoreDisplay.textContent = score;
+            message.textContent = "Press the displayed alphabet key to practice!";
+            startButton.disabled = true;
+            goFullScreen();
+            spawnLetter();
+        }
+
+        // Spawn a letter
+        function spawnLetter() {
+            if (letterElement) gameArea.removeChild(letterElement);
+
+            currentLetter = getRandomLetter();
+            letterElement = document.createElement("div");
+            letterElement.className = "letter";
+            letterElement.textContent = currentLetter;
+            letterElement.style.fontSize = `${letterSize}rem`;
+
+            const position = getRandomPosition();
+            letterElement.style.left = `${position.x}px`;
+            letterElement.style.top = `${position.y}px`;
+
+            gameArea.appendChild(letterElement);
+        }
+
+        // Handle key press
+        function handleKeyPress(event) {
+            const key = event.key.toUpperCase();
+            if (key === currentLetter) {
+                score++;
+                scoreDisplay.textContent = score;
+                spawnLetter();
+            } else if (key === "=" || key === "+") { // Adjusted for "=" key since "+" often requires Shift
+                letterSize += 0.5;
+                if (letterElement) letterElement.style.fontSize = `${letterSize}rem`;
+                fontSizeDisplay.textContent = `Font Size: ${letterSize}rem`;
+            } else if (key === "-") {
+                letterSize = Math.max(1, letterSize - 0.5);
+                if (letterElement) letterElement.style.fontSize = `${letterSize}rem`;
+                fontSizeDisplay.textContent = `Font Size: ${letterSize}rem`;
+            } else {
+                message.textContent = "Wrong key! Try again!";
+                setTimeout(() => {
+                    message.textContent = "Press the displayed alphabet key to practice!";
+                }, 1000);
+            }
+        }
+
+        // Toggle Dark/Light Mode
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark-mode");
+        }
+
+        // Change accent color
+        function changeAccentColor(event) {
+            document.documentElement.style.setProperty("--accent-color", event.target.value);
+        }
+
+        // Event listeners
+        startButton.addEventListener("click", startGame);
+        document.addEventListener("keydown", handleKeyPress);
+        toggleMode.addEventListener("click", toggleDarkMode);
+        colorPicker.addEventListener("input", changeAccentColor);
+    </script>
+</body>
+</html>
